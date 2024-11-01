@@ -1,36 +1,43 @@
 # THM_Anti-Reverse_Engineering
-TryHackMe Anti-Reverse Engineering Box
+## TryHackMe Anti-Reverse Engineering Box
 
-Learning Objectives
-- Learn why malware authors use anti-reverse engineering techniques
-- Learn about different anti-reverse engineering techniques
-- Learn the techniques on how to circumvent anti-reverse engineering using various tools
-- Learn how anti-reverse engineering techniques are implemented by reading the source code
+### Learning Objectives
+- Understand why malware authors use anti-reverse engineering techniques.
+- Explore different anti-reverse engineering techniques.
+- Learn how to circumvent anti-reverse engineering using various tools.
+- Implement anti-reverse engineering techniques by reading the source code.
 
-======================
-What I Did and Learned
-======================
-Anti-Debugging Overview
-- malware authors use anti debugging measures
--   checkig for presence of debuggers (such as windows API func IsDebuggerPresent
--   malware may try and tamper with debugger registers, alter the execution of code so debugger does not function correctly
--   self modifying code
+---
 
-Anti-Debugging Using Suspend Thread
-- windows API functions used to pause execution of a thread in a process
-- malware may use this to stop the execution of the debugger at all
-- run example program performing this technique, as we can see it suspends the debug process x64dbg
+### What I Did and Learned
+
+#### Anti-Debugging Overview
+- Malware authors employ anti-debugging measures.
+- They check for the presence of debuggers using Windows API functions (e.g., `IsDebuggerPresent`).
+- Malware may tamper with debugger registers or alter code execution to prevent the debugger from functioning correctly.
+- Utilization of self-modifying code.
+
+#### Anti-Debugging Using Suspend Thread
+- Windows API functions can pause the execution of a thread in a process.
+- Malware may use this technique to halt the execution of the debugger entirely.
+- I ran an example program demonstrating this technique, which suspends the debug process in **x64dbg**:
+
 ![x64dbg debugger suspended](6e78f4aab8de049609c41c5588f70124.png)
-- Solution: patch function SuspendThread so that the debugger wont be suspended
-- Steps:
-  1. open x62dbg and open example malware file
-  2. F9 to jump to execution EntryPoint
-  3. Within intermodular calls search for SuspendThread and select the SuspendThread entry
-  4. On part of code that calls the SuspendThread API, fill it with NOPs. Memory 0004011AB-00401B0 are set to 90 hex or (No Operation)
-  5. Now if we attempt to continue execution of the malware, prints out "Debugger found...! Suspending" while it is still finding the debugger we are now skipping the part of the malware execution that suspends the debugger
-  6. Temp fix, now we need to export than import our patch for future use
-  7. Repeat path steps but before rerunning, view the patch file and save it
-  8. Re debug malware and import patch
+
+**Solution**: Patch the `SuspendThread` function so that the debugger won't be suspended.
+
+**Steps**:
+1. Open **x64dbg** and load the example malware file.
+2. Press **F9** to jump to the execution EntryPoint.
+3. In the intermodular calls, search for `SuspendThread` and select the `SuspendThread` entry.
+4. For the part of the code that calls the `SuspendThread` API, fill it with NOPs. Set memory from `0004011AB` to `00401B0` to `90` hex (No Operation).
+5. Now, when attempting to continue execution of the malware, it prints "Debugger found...! Suspending" while still finding the debugger, effectively skipping the part of the malware execution that suspends the debugger.
+6. This is a temporary fix; we need to export and then import our patch for future use.
+7. Repeat the patch steps, but before rerunning, view the patch file and save it.
+8. Re-debug the malware and import the patch.
+
 ![Patch applied](patch.png)
-  9. As we can see without going through entire patching process we have still patched the malware
+
+9. As observed, without going through the entire patching process, we have successfully patched the malware:
+
 ![Patch applied](2adb65eb552a957b2d52c88edd672cf3.png)
